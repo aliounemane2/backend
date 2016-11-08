@@ -13,11 +13,17 @@ app.controller('DashboardCtrl', function ($scope, $window, $location, AuthServic
   var debut = null;
   var fin = null;
 
+  // Déclarer les points
+  var p1 = new google.maps.LatLng(14.782300000000001, -17.323140000000002);
+  var p2 = new google.maps.LatLng(14.78231, -17.323130000000003);
 
-  $scope.pointsArray = [];
+
+  $scope.pointsArray = [[]];
   $scope.pointsArray1 = [];
   $scope.pointsArray2 = [];
 
+  // var z = 0;
+  var z = 0;
 
   var queue = $queueFactory($scope.pointsArray, true);
   var _qTasks = [];
@@ -52,7 +58,6 @@ app.controller('DashboardCtrl', function ($scope, $window, $location, AuthServic
         console.log(map.getCenter());
         console.log('markers', map.markers);
         console.log('shapes', map.shapes);
-        console.log(' l ensemble des points points Array ', pointsArray);
 
    });
 
@@ -105,7 +110,6 @@ app.controller('DashboardCtrl', function ($scope, $window, $location, AuthServic
              $scope.directi.push(
                      {origin:debut, destination:fin}
              );
-
              console.log(' fin == null '+fin);
              console.log(' contenu de directi ');
              console.log($scope.directi);
@@ -113,11 +117,10 @@ app.controller('DashboardCtrl', function ($scope, $window, $location, AuthServic
              debut = null;
              fin = null;
 
-
-             // à décommenter
-             $timeout(function(){
-                $scope.tracer();
-             });
+                 // à décommenter
+                 $timeout(function(){
+                    $scope.tracer(event);
+                 }, 1000);
 
          } else if (fin != null){
              fin = null;
@@ -126,25 +129,8 @@ app.controller('DashboardCtrl', function ($scope, $window, $location, AuthServic
              debut = null;
              console.log(' debut != null => '+debut);
          }
-
-
     }
 
-
-
-   $scope.effacer = function(){
-
-      var map = $scope.map;
-
-      // alert('cc');
-      // var latlng = new google.maps.LatLng($scope.pointsArray[j].lat, $scope.pointsArray[j].lng);
-      // var latlng = new google.maps.LatLng(14.73904693302263, -17.47169028859048);
-
-      console.log(' markers ',map.markers);
-      console.log(' Position ',map.markers.mark.getPosition());
-      console.log(' mark ',map.markers.mark);
-
-   }
 
 
     // traçage de façon séquentiel fonctionne bien
@@ -246,40 +232,82 @@ app.controller('DashboardCtrl', function ($scope, $window, $location, AuthServic
 */
 
 
+  $scope.rad = function(x) {
+      return x * Math.PI / 180;
+  };
+
+
+  $scope.getDistance = function(p1, p2) {
+
+        var R = 6378137;
+        var dLat = $scope.rad(p2.lat() - p1.lat());
+        var dLong = $scope.rad(p2.lng() - p1.lng());
+        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos($scope.rad(p1.lat())) * Math.cos($scope.rad(p2.lat())) *
+            Math.sin(dLong / 2) * Math.sin(dLong / 2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        var d = R * c;
+        // return d;
+        console.log(' La valeur arrondi de la distance ');
+        console.log(Math.ceil(d/10)*10);
+        return Math.ceil(d/10)*10;
+
+};
+
+
+
    // Façon recommandé
    // $scope.tracer = function(event){   la bonne
    $scope.tracer = function(event){
-
-        $scope.pointsArray = [];
 
         $scope.debut = null;
         $scope.fin = null;
         var map = $scope.map;
         var zoom = map.getZoom();
 
+        z = $scope.directi.length-1;
 
-        // alert(' cc ');
-        // console.log(' cc ');
-        // console.log('--------'+i);
-        // i++;
+        // A ne pas décommenter
+        // z = $scope.pointsArray.length-1;
+        $scope.pointsArray[z] = [];
 
 
-        for ( var k = 0; k < map.directionsRenderers[k].directions.routes[0].legs[0].steps.length; k++){
+        // à decommenter
+        // for ( var k = 0; k < map.directionsRenderers[k].directions.routes[0].legs[0].steps.length; k++){
 
-            console.log(' variation de k '+k);
-            console.log(map.directionsRenderers[k]);
-            console.log(' -------- ');
+            // console.log(' variation de k '+k);
+            // console.log(' -------- ');
 
-            for ( var i = 0; i < map.directionsRenderers[k].directions.routes[0].legs[0].steps.length; i++){
-                console.log(' Boucle  1', map.directionsRenderers[k].directions.routes[0].legs[0].steps[i]);
 
-                for ( var j = 0; j < map.directionsRenderers[k].directions.routes[0].legs[0].steps[i].path.length; j++){
-                    console.log(' Boucle 2 Latitude Longitude ', map.directionsRenderers[k].directions.routes[0].legs[0].steps[i]       .path[j].lat(), map.directionsRenderers[k].directions.routes[0].legs[0].steps[i].path[j].lng());
-                    $scope.pointsArray.push({'lat':map.directionsRenderers[k].directions.routes[0].legs[0].steps[i].path[j].lat(), 'lng':map.directionsRenderers[k].directions.routes[0].legs[0].steps[i].path[j].lng()});
+
+            for ( var i = 0; i < map.directionsRenderers[z].directions.routes[0].legs[0].steps.length; i++){
+
+              console.log(' Boucle  1', map.directionsRenderers[z].directions.routes[0].legs[0].steps[i]);
+
+                for ( var j = 0; j < map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path.length; j++){
+                    console.log(' Boucle 2 Latitude Longitude ', map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lat(), map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lng());
+                    $scope.pointsArray[z].push({'lat':map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lat(), 'lng':map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lng()});
                     // var latlng = new google.maps.LatLng($scope.pointsArray[k].lat , $scope.pointsArray[k].lng);
+
+                    p1 = new google.maps.LatLng(map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lat(), map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lng());
+                    p2 = new google.maps.LatLng(map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lat(), map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lng());
+                    // $scope.getDistance(p1, p2);
+
+                    map.markers[z].setPosition(new google.maps.LatLng(map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lat(), map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lng()));
+
+                    /*
+
+                    var distance = 0;
+                    while(distance < $scope.getDistance(p1, p2)){
+                        distance = distance + 10;
+                        map.markers[z].setPosition(p1);
+                        console.log(' La valeur de la distance est '+distance);
+                    }
+
+                    */
+
                 }
             }
-
 
 
 /*  A décommenter ancien code
@@ -308,14 +336,13 @@ app.controller('DashboardCtrl', function ($scope, $window, $location, AuthServic
 
 
 
-// nouvelle code avec EnQueue
 
 
-        // var queue = $queueFactory($scope.pointsArray, true);
-  //  _qTasks.push(
-
-
-
+/*
+    Le Bon code  à décommenter
+    Le Bon code  à décommenter
+    Le Bon code  à décommenter
+    Le Bon code  à décommenter
 
         queue.enqueue(function () {
             var dfd = $q.defer();
@@ -337,7 +364,7 @@ app.controller('DashboardCtrl', function ($scope, $window, $location, AuthServic
                 return dfd.promise;
 
         });
-
+*/
 
 
   //  );
@@ -369,9 +396,14 @@ app.controller('DashboardCtrl', function ($scope, $window, $location, AuthServic
 */
 
 
+
+
+/*  à décommenter
+    à décommenter
+    à décommenter
       }
 
-
+*/
 
 
 /*
