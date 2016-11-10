@@ -16,11 +16,14 @@ app.controller('DashboardCtrl', function ($scope, $window, $location, AuthServic
   // Déclarer les points
   var p1 = new google.maps.LatLng(14.782300000000001, -17.323140000000002);
   var p2 = new google.maps.LatLng(14.78231, -17.323130000000003);
+  var getDistancess;
+  var distance;
 
 
   $scope.pointsArray = [[]];
   $scope.pointsArray1 = [];
   $scope.pointsArray2 = [];
+  var tabs = [];
 
   // var z = 0;
   var z = 0;
@@ -248,11 +251,41 @@ app.controller('DashboardCtrl', function ($scope, $window, $location, AuthServic
         var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         var d = R * c;
         // return d;
-        console.log(' La valeur arrondi de la distance ');
-        console.log(Math.ceil(d/10)*10);
+
+        // console.log(' La valeur arrondi de la distance ');
+        // console.log(Math.ceil(d/10)*10);
         return Math.ceil(d/10)*10;
 
-};
+    };
+
+    $scope.traitement = function(){
+        var map = $scope.map;
+
+        distance = 0;
+
+        if ( distance < $scope.getDistance(p1, p2)){
+            // return;
+
+            distance = distance + 10;
+            console.log(' La valeur de la distance est : ==>> '+distance);
+            map.markers[z].setPosition(p1);
+        }
+
+                    /*
+                            $interval(function() {
+                                if (j > $scope.pointsArray.length-1)
+                                    return;
+
+                                console.log(' j: '+j);
+                                var latlng = new google.maps.LatLng($scope.pointsArray[j].lat, $scope.pointsArray[j].lng);
+                                //------>>>> map.markers.mark.setPosition(latlng);
+                                map.markers[0].setPosition(latlng);
+                                j++;
+                            }, 100);
+
+                    */
+
+    };
 
 
 
@@ -270,6 +303,7 @@ app.controller('DashboardCtrl', function ($scope, $window, $location, AuthServic
         // A ne pas décommenter
         // z = $scope.pointsArray.length-1;
         $scope.pointsArray[z] = [];
+        // $scope.pointsArray = [[]];
 
 
         // à decommenter
@@ -279,35 +313,86 @@ app.controller('DashboardCtrl', function ($scope, $window, $location, AuthServic
             // console.log(' -------- ');
 
 
-
             for ( var i = 0; i < map.directionsRenderers[z].directions.routes[0].legs[0].steps.length; i++){
-
-              console.log(' Boucle  1', map.directionsRenderers[z].directions.routes[0].legs[0].steps[i]);
+                console.log(' Boucle  1', map.directionsRenderers[z].directions.routes[0].legs[0].steps[i]);
+                console.log(' La Taille de  Length '+map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path.length);
 
                 for ( var j = 0; j < map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path.length; j++){
                     console.log(' Boucle 2 Latitude Longitude ', map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lat(), map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lng());
                     $scope.pointsArray[z].push({'lat':map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lat(), 'lng':map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lng()});
                     // var latlng = new google.maps.LatLng($scope.pointsArray[k].lat , $scope.pointsArray[k].lng);
-
-                    p1 = new google.maps.LatLng(map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lat(), map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lng());
-                    p2 = new google.maps.LatLng(map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lat(), map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lng());
-                    // $scope.getDistance(p1, p2);
-
-                    map.markers[z].setPosition(new google.maps.LatLng(map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lat(), map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lng()));
-
-                    /*
-
-                    var distance = 0;
-                    while(distance < $scope.getDistance(p1, p2)){
-                        distance = distance + 10;
-                        map.markers[z].setPosition(p1);
-                        console.log(' La valeur de la distance est '+distance);
-                    }
-
-                    */
-
                 }
             }
+
+
+            $q.when().then(function(tabs = $scope.pointsArray[z]){
+
+                var deferred = $q.defer();
+                var j = 0;
+
+
+                $interval(function(tabs = $scope.pointsArray[z]){
+
+
+                    if ( j >= $scope.pointsArray[z].length-1)
+                        return;
+
+                        console.log($scope.pointsArray[z][j].lat,$scope.pointsArray[z][j].lng);
+                        p1 = new google.maps.LatLng($scope.pointsArray[z][j].lat,$scope.pointsArray[z][j].lng);
+                        p2 = new google.maps.LatLng($scope.pointsArray[z][j+1].lat,$scope.pointsArray[z][j+1].lng);
+
+                        console.log(' *************************  1 ');
+                        console.log(' CC  1 ');
+                        // $scope.getDistance(p1, p2);
+                        distance = 0;
+
+                        $interval(function(){
+                            if (distance >= $scope.getDistance(p1, p2))
+                                return;
+
+                                distance = distance + 10;
+                                map.markers[z].setPosition(p1);
+                                console.log(' La valeur de la distance est ===>>> '+distance);
+                                deferred.resolve(distance);
+
+                        }, distance);
+
+                        // if ( distance < $scope.getDistance(p1, p2)){
+                        //    distance = distance + 10;
+                        //    console.log(' La valeur de la distance est ==>>>>> '+distance);
+
+                        // return;
+                        //    map.markers[z].setPosition(p1);
+                        //    console.log('  Distance ==>> '+distance);
+                        //    distance = distance + 10;
+                        // }
+                        console.log(' *************************  2 ');
+
+
+                    // console.log(' ZZZZ '+z);
+                    // console.log($scope.pointsArray[z]);
+                    // console.log($scope.pointsArray[z].length);
+
+                        console.log(' La valeur de j '+j);
+                        j++;
+                    // }
+
+                }, 1000);
+                 return deferred.promise;
+            });
+
+            // Affichage séquentiel d'un Markeur
+
+/*
+            p1 = new google.maps.LatLng(map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lat(), map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j].lng());
+            p2 = new google.maps.LatLng(map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j+1].lat(), map.directionsRenderers[z].directions.routes[0].legs[0].steps[i].path[j+1].lng());
+            // --- getDistancess = $scope.getDistance(p1, p2);
+
+            // Ok $interval( $scope.getDistance(p1, p2), 1000);
+            console.log(' ddddddddddddddddddddd   ');
+            $interval($scope.traitement(), 1000);
+            console.log(' ddddddddddddddddddddd   ');
+*/
 
 
 /*  A décommenter ancien code
